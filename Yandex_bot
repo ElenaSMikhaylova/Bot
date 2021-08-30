@@ -1,34 +1,69 @@
 // ==UserScript==
-// @name         New Ya
+// @name         yandex300821
 // @namespace    http://tampermonkey.net/
 // @version      0.1
-// @description  Яндекс
+// @description  BotYa
 // @author       ElenaMikhaylova
-// @match         https://yandex.ru/*
+// @match        https://yandex.ru/*
+// @match        https://sea-law.ru/*
+// @grant        none
 // ==/UserScript==
+let keywords=["как забить гвоздь", "центр морского права", "права на лодку","права гимс"];// ключевые слова
+let btnK =document.getElementsByClassName("button mini-suggest__button")[0]; //кнопка поиска на главной яндекса
+let yandexInput = document.getElementsByName("text")[0];//передаем в переменную строку поиска по имени
+let links =document.links;//собираем коллекцию ссылок на текущей странице
+let keyword=keywords[getRandom(0, keywords.length)];//задаем случайное ключевое слово для поиска
 
-let btnK =document.getElementsByClassName("button mini-suggest__button")[0];
-let keywords=["центр морского права", "права на лодку","права гимс"];
-let keyword=keywords[getRandom(0, keywords.length)];
-document.getElementsByName("text")[0].value=keyword;
-console.log("Задали ключ    "+ document.getElementsByName("text")[0].value);
+if (btnK !== undefined) {//если кнопка поиска есть (первичная)
+    let i = 0;//от первой буквы
 
-if(btnK!=undefined){
-    btnK.click();
-}
-else {
-    let links =document.links;
-    for (let i=0; i<links.length; i++) {
-        if (links[i].href.includes('sea-law.ru')){
-            console.log("Нашел строку" + links[i]);
-            let link=links[i];
-            console.log("Передали на клик "+ link);
-            link.click();
-            break;
+    let timerId = setInterval(()=>{//включаем таймер
+        yandexInput.value += keyword[i];//в стоку поиска заносим еще одну букву
+        i++;//счетчик +
+        if (i == keyword.length) {//если достигли конца поисковой фразы
+           console.log("вбили поисковую фразу");//отчитываемся в консоль
+            clearInterval(timerId);//сбрасываем счетчик интервала времени
+            btnK.click();//кликаем на кнопке поиска
         }
+
+    },500);//полсекунды прошли
+
+}else if(location.hostname == 'sea-law.ru'){//если кнопки нет проверяем находимся ли на целевом сайте
+    console.log("Мы на sea-law.ru");//отчитываемся в консоль
+    setInterval(()=>{//включаем таймер
+        let index = getRandom(0, links.length);//пишем в переменную случайный номер ссылки
+        if(getRandom(0,101) >= 80) {//101 т.к. округляет в меньшую сторону, а надо надать вероятность до 100. если выдаст больше 80 - идем в гугл
+            location.href = "https://www.yandex.ru";
+        }
+        if (links[index].href.indexOf("sea-law.ru") !== -1)//если ссылка внутренняя
+            links[index].click();//переходим по внутренней ссылке
+    }, getRandom(1000, 5000));//задержка на 1-5сек
+}else{
+    let nextYandexPage = true;//разрешаем переход на следующую страницу выдачи яндекса
+    for (let i=0; i<links.length; i++) {//перебираем выдачу
+        if (links[i].href.includes('sea-law.ru')){//если это ссылка на целевой сайт
+            let link = links[i];//запоминаем адрес в переменной
+            let nextYandexPage = false;//запрещаем переход на следующую страницу выдачи
+            setTimeout(()=>{link.click();},getRandom(3000,7000));//кликаем по ссылке задержка 3-7 сек
+            console.log("Нашел строку" + links[i]);//выдаем в консоль адрес целевой ссылки
+            break;//прерываем цикл
+        }
+    }
+    if (document.getElementsByClassName('pager__item pager__item_current_yes pager__item_kind_page')[0].innerText == "2") {//проверяем селектор страницы
+        let nextYandexPage = false;//запрещаем дальнейший переход по страницам
+        location.href = "https://yandex.ru/";//переходим на главную страницу яндекса
+    }
+    if (nextYandexPage) {//если мы не запретили переход по страницам выдачи
+        setTimeout(()=>{
+            let next =document.getElementsByClassName("pager__item_kind_next")[0];
+
+            next.click();
+
+        },getRandom(2000,6000));//кликаем на "следующая страница" со случайной задержкой
+
     }
 }
 
-function getRandom(min,max){
+function getRandom(min,max) {
     return Math.floor(Math.random()*(max-min)+min)
 }
