@@ -4,12 +4,13 @@
 // @version      0.1
 // @description  BotYa
 // @author       ElenaMikhaylova
+// @match        https://ya.ru/*
 // @match        https://yandex.ru/*
 // @match        https://sea-law.ru/*
 // @grant        none
 // ==/UserScript==
 let keywords=["как забить гвоздь", "центр морского права", "права на лодку","права гимс"];// ключевые слова
-let btnK =document.getElementsByClassName("button mini-suggest__button")[0]; //кнопка поиска на главной яндекса
+let btnK =document.getElementsByClassName("button mini-suggest__button button_theme_search button_size_search-large i-bem")[0]; //кнопка поиска на главной яндекса
 let yandexInput = document.getElementsByName("text")[0];//передаем в переменную строку поиска по имени
 let links =document.links;//собираем коллекцию ссылок на текущей странице
 let keyword=keywords[getRandom(0, keywords.length)];//задаем случайное ключевое слово для поиска
@@ -36,6 +37,7 @@ if (btnK !== undefined) {//если кнопка поиска есть (перв
             location.href = "https://www.yandex.ru";
         }
         if (links[index].href.indexOf("sea-law.ru") !== -1)//если ссылка внутренняя
+            //links[index].target = "_self";
             links[index].click();//переходим по внутренней ссылке
     }, getRandom(1000, 5000));//задержка на 1-5сек
 }else{
@@ -49,9 +51,9 @@ if (btnK !== undefined) {//если кнопка поиска есть (перв
             break;//прерываем цикл
         }
     }
-    if (document.getElementsByClassName('pager__item pager__item_current_yes pager__item_kind_page')[0].innerText == "2") {//проверяем селектор страницы
+    if (document.getElementsByClassName('pager__item pager__item_current_yes pager__item_kind_page')[0].ariaLabel == "Текущая страница 5") {//проверяем селектор страницы
         let nextYandexPage = false;//запрещаем дальнейший переход по страницам
-        location.href = "https://yandex.ru/";//переходим на главную страницу яндекса
+        location.href = "https://ya.ru/";//переходим на главную страницу яндекса
     }
     if (nextYandexPage) {//если мы не запретили переход по страницам выдачи
         setTimeout(()=>{
